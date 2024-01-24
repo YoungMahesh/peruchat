@@ -3,7 +3,6 @@ import Head from "next/head";
 import { useState } from "react";
 
 export default function Home() {
-
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,11 +14,15 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password }),
       });
-      console.log('status', res.status)
-      const data = (await res.json()) as unknown;
-      console.log(data);
+
+      console.log("status", res.status);
+      const data = (await res.json()) as unknown as { message: string };
+      if (res.status !== 201) {
+        alert(data.message);
+      } else alert("Successfully Registered.");
     } catch (error) {
       console.error(error);
+      alert("An error occurred, check the console for more information")
     }
   };
 
