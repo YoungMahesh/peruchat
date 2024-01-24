@@ -1,0 +1,26 @@
+version: "3.7"
+
+services:
+  mysql:
+    container_name: mysql
+    image: mysql:8.3.0
+    restart: always
+    environment:
+      # defaut user: root
+      MYSQL_ROOT_PASSWORD: 930adf4c5b27ddde79e6
+    ports:
+      - 3307:3306
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+
+  phpmyadmin:
+    container_name: phpmyadmin
+    image: phpmyadmin:5.2.1
+    restart: always
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 100M
+      # - PMA_ARBITRARY=1 # allow user to connect arbitrary server by providing "Server" field during login
+    ports:
+      - 5300:80
