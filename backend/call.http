@@ -1,0 +1,12 @@
+# works with vscode-extension: humao.rest-client
+GET http://localhost:3001
+
+###
+POST http://localhost:3001/register
+Content-Type: application/json
+
+{
+    "username": "John Doe",
+    "email": "johndoe@gmail.com",
+    "password": "29329205"
+}
