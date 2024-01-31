@@ -2,7 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-
 h3 {
-    @apply text-2xl;
+  @apply text-2xl;
+}
+
+a {
+  color: rgb(150, 150, 253);
 }
