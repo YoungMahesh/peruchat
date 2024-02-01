@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
 
@@ -18,12 +19,23 @@ func main() {
 		return c.SendString("Hello, World 👋!")
 	})
 
+	// authentication
 	app.Post("/login", func(c *fiber.Ctx) error {
 		return userLogin(c, db)
 	})
-
 	app.Post("/register", func(c *fiber.Ctx) error {
 		return userRegister(c, db)
+	})
+
+	// users
+	app.Get("/users", func(c *fiber.Ctx) error {
+		// get parameter from query string, currPage
+		currPageStr := c.Query("currPage")
+		currPage, err := strconv.ParseUint(currPageStr, 10, 16)
+		if err != nil {
+			currPage = 1
+		}
+		return usersList(c, db, uint16(currPage))
 	})
 
 	app.Listen(":3001")
@@ -51,3 +63,5 @@ func connectDB() *sql.DB {
 	}
 	return db
 }
+
+var jwtSecret = []byte("secret")

@@ -23,8 +23,6 @@ type Login struct {
 	Password string `json:"password"`
 }
 
-var jwtSecret = []byte("secret")
-
 func userLogin(c *fiber.Ctx, db *sql.DB) error {
 	u1 := new(Login)
 	if err := c.BodyParser(u1); err != nil {

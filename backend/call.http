@@ -18,5 +18,9 @@ Content-Type: application/json
 
 {
     "username": "john3",
-    "password": "wcwojwfwicz"
+    "password": "wcwojwfwicj"
 }
+
+
+###
+GET http://localhost:3001/users?currPage=1
