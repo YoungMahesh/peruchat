@@ -10,6 +10,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@heroicons/react": "^2.1.1",
     "@nextui-org/react": "^2.2.9",
     "@t3-oss/env-nextjs": "^0.7.1",
     "framer-motion": "^11.0.3",

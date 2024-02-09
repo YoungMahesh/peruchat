@@ -38,21 +38,15 @@ func main() {
 		return usersList(c, db, uint16(currPage))
 	})
 
-	app.Listen(":3001")
-}
+	app.Get("/get_msgs", isValidJwt, func(c *fiber.Ctx) error {
+		return getMessages(c, db)
+	})
 
-func isValidUsername(str string) bool {
-	// should be between 3 and 20 characters long
-	if len(str) < 3 || len(str) > 20 {
-		return false
-	}
-	// is alphanumeric
-	for _, char := range str {
-		if !(char >= 'a' && char <= 'z') && !(char >= '0' && char <= '9') {
-			return false
-		}
-	}
-	return true
+	app.Post("/send_msg", isValidJwt, func(c *fiber.Ctx) error {
+		return sendMessage(c, db)
+	})
+
+	app.Listen(":3001")
 }
 
 func connectDB() *sql.DB {

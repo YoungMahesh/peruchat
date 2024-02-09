@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { USER_IDENTY_KEY, toastOptions } from "~/utils/constants";
+import authStore from "~/utils/auth";
+import { toastOptions } from "~/utils/constants";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -31,11 +32,7 @@ export default function LoginPage() {
         alert(data.message);
         return toast.error(data.message, toastOptions);
       }
-
-      localStorage.setItem(
-        USER_IDENTY_KEY,
-        JSON.stringify({ username, token: data.token }),
-      );
+      authStore.storeToken(username, data.token);
       void router.push("/");
     } catch (error) {
       console.error(error);
@@ -44,7 +41,7 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
-    if (localStorage.getItem(USER_IDENTY_KEY)) {
+    if (localStorage.getItem(authStore.USER_IDENTY_KEY)) {
       void router.push("/");
     }
   }, [router]);

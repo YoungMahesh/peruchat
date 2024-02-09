@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 
-export default function UsersList({ currUsername }: { currUsername: string }) {
+export default function UsersList({
+  currUsername,
+  setReceiver,
+}: {
+  currUsername: string;
+  setReceiver: (_: string) => void;
+}) {
   const [usersList, setUserList] = useState<{ username: string }[]>([]);
   console.log({ usersList });
   useEffect(() => {
@@ -28,7 +34,9 @@ export default function UsersList({ currUsername }: { currUsername: string }) {
   return (
     <section className="flex flex-col">
       {usersList.map((user, idx) => (
-        <div key={idx}>{user.username}</div>
+        <div key={idx} onClick={() => setReceiver(user.username)}>
+          {user.username}
+        </div>
       ))}
     </section>
   );

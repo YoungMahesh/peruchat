@@ -4,15 +4,17 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import ChatBox from "~/components/ChatBox";
 import UsersList from "~/components/UsersList";
-import { USER_IDENTY_KEY } from "~/utils/constants";
+import authStore from "~/utils/auth";
 
 export default function Home() {
   const [currUser, setCurrUser] = useState<string | null>(null);
+  const [receiver, setReceiver] = useState<string>("");
 
   useEffect(() => {
-    const _currUser = localStorage.getItem(USER_IDENTY_KEY);
-    if (_currUser) setCurrUser(_currUser);
-    else setCurrUser("");
+    void (async () => {
+      const _username = await authStore.retrieveUsername();
+      setCurrUser(_username);
+    })();
   }, []);
 
   return (
@@ -28,7 +30,13 @@ export default function Home() {
           {(() => {
             if (currUser === null) return <p>Loading...</p>;
             else if (currUser.length)
-              return <ChatWindow currUsername={currUser} />;
+              return (
+                <ChatWindow
+                  currUsername={currUser}
+                  receiver={receiver}
+                  setReceiver={setReceiver}
+                />
+              );
             else return <LogInBox />;
           })()}
         </div>
@@ -59,11 +67,19 @@ const LogInBox = () => {
   );
 };
 
-const ChatWindow = ({ currUsername }: { currUsername: string }) => {
+const ChatWindow = ({
+  currUsername,
+  receiver,
+  setReceiver,
+}: {
+  currUsername: string;
+  receiver: string;
+  setReceiver: (_: string) => void;
+}) => {
   return (
     <div className="grid" style={{ gridTemplateColumns: "25% 75%" }}>
-      <UsersList currUsername={currUsername} />
-      <ChatBox />
+      <UsersList currUsername={currUsername} setReceiver={setReceiver} />
+      <ChatBox sender={currUsername} receiver={receiver} />
     </div>
   );
 };

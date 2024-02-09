@@ -24,3 +24,22 @@ Content-Type: application/json
 
 ###
 GET http://localhost:3001/users?currPage=1
+
+
+
+###
+POST http://localhost:3001/send_msg
+Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDc1NjM1NzUsInVzZXJuYW1lIjoiam9objMifQ.avXy0s6gaspiwAYRDUT4VOKPRid6v4LXtrRTe2cltoU
+
+{
+   "to": "john2",
+    "message": "hello, john!"
+}
+
+
+###
+GET http://localhost:3001/get_msgs?to=john2
+Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDc1NjM1NzUsInVzZXJuYW1lIjoiam9objMifQ.avXy0s6gaspiwAYRDUT4VOKPRid6v4LXtrRTe2cltoU
+
