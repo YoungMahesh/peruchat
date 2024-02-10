@@ -12,6 +12,12 @@ type SendMessage struct {
 	Message string `json:"message"`
 }
 
+type NewMessage struct {
+	From    string `json:"from"`
+	To      string `json:"to"`
+	Message string `json:"message"`
+}
+
 type Event struct {
 	Type    string          `json:"type"`
 	Payload json.RawMessage `json:"payload"`
@@ -36,6 +42,14 @@ func sendMessage(c *fiber.Ctx, db *sql.DB) error {
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"message": "Message sent",
 	})
+}
+
+func sendMessage0(username string, to string, message string, db *sql.DB) error {
+	_, err := db.Exec("INSERT INTO messages (from_user, to_user, message) VALUES (?, ?, ?)", username, to, message)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 type GetMessagesRequest struct {

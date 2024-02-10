@@ -120,6 +120,19 @@ func main() {
 				println("get_msgs", messages)
 
 			} else if message1.Type == "send_msg" {
+				var sendMsg SendMessage
+				err := json.Unmarshal(message1.Payload, &sendMsg)
+				if err != nil {
+					log.Println("failed json.Unmarshal:", err)
+					break
+				}
+
+				err = sendMessage0(username, sendMsg.To, sendMsg.Message, db)
+				if err != nil {
+					log.Println("failed sendMessage0:", err)
+					break
+				}
+
 				println("send_msg", message1.Payload)
 			}
 

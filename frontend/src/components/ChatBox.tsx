@@ -3,6 +3,7 @@ import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 import authStore from "~/utils/auth";
 import { useRouter } from "next/router";
+import type { FetchedMessage } from "~/utils/types.utils";
 
 type FetchedMsg = {
   fromSender: boolean;
@@ -12,9 +13,11 @@ type FetchedMsg = {
 export default function ChatBox({
   sender,
   receiver,
+  msgList,
 }: {
   sender: string;
   receiver: string;
+  msgList: FetchedMessage[];
 }) {
   const router = useRouter();
   const [message, setMessage] = useState("");
@@ -83,8 +86,8 @@ export default function ChatBox({
   return (
     <section>
       <div className="flex flex-col">
-        {fetchedMsgs.map((fm, idx) => (
-          <p key={idx} className={`${fm.fromSender ? "self-end" : ""} m-2 p-1`}>
+        {msgList.map((fm, idx) => (
+          <p key={idx} className={`${fm.is_sender ? "self-end" : ""} m-2 p-1`}>
             {fm.message}
           </p>
         ))}

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Button } from "@nextui-org/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -5,10 +7,12 @@ import { useEffect, useState } from "react";
 import ChatBox from "~/components/ChatBox";
 import UsersList from "~/components/UsersList";
 import authStore from "~/utils/auth";
+import type { FetchedMessage } from "~/utils/types.utils";
 
 export default function Home() {
   const [currUser, setCurrUser] = useState<string | null>(null);
   const [receiver, setReceiver] = useState<string>("");
+  const [messageList, setMessageList] = useState<FetchedMessage[]>([]);
 
   useEffect(() => {
     void (async () => {
@@ -21,10 +25,23 @@ export default function Home() {
 
       socket.addEventListener("open", function (event) {
         console.log("Connected to the WS Server");
+        const getMsgReq = {
+          type: "get_msgs",
+          payload: {
+            to_user: receiver,
+          },
+        };
+        socket.send(JSON.stringify(getMsgReq));
       });
-      socket.addEventListener("message", function (event) {
+      socket.addEventListener("message", async function (event) {
         console.log("Message from server ", event.data);
-      })
+        const msgList = (await JSON.parse(event.data)) as unknown as
+          | FetchedMessage[]
+          | null;
+        console.log({ msgList });
+        if (msgList) setMessageList(msgList);
+        else setMessageList([]);
+      });
 
       socket.onopen = () => {
         console.log("Connected to the server");
@@ -34,7 +51,7 @@ export default function Home() {
         console.error("WebSocket error observed:", Object.keys(event));
       };
     })();
-  }, []);
+  }, [receiver]);
 
   return (
     <>
@@ -54,6 +71,7 @@ export default function Home() {
                   currUsername={currUser}
                   receiver={receiver}
                   setReceiver={setReceiver}
+                  msgList={messageList}
                 />
               );
             else return <LogInBox />;
@@ -89,16 +107,18 @@ const LogInBox = () => {
 const ChatWindow = ({
   currUsername,
   receiver,
+  msgList,
   setReceiver,
 }: {
   currUsername: string;
   receiver: string;
+  msgList: FetchedMessage[];
   setReceiver: (_: string) => void;
 }) => {
   return (
     <div className="grid" style={{ gridTemplateColumns: "25% 75%" }}>
       <UsersList currUsername={currUsername} setReceiver={setReceiver} />
-      <ChatBox sender={currUsername} receiver={receiver} />
+      <ChatBox msgList={msgList} sender={currUsername} receiver={receiver} />
     </div>
   );
 };
