@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -9,6 +10,11 @@ import (
 type SendMessage struct {
 	To      string `json:"to"`
 	Message string `json:"message"`
+}
+
+type Event struct {
+	Type    string          `json:"type"`
+	Payload json.RawMessage `json:"payload"`
 }
 
 func sendMessage(c *fiber.Ctx, db *sql.DB) error {
@@ -30,6 +36,10 @@ func sendMessage(c *fiber.Ctx, db *sql.DB) error {
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"message": "Message sent",
 	})
+}
+
+type GetMessagesRequest struct {
+	ToUser string `json:"to_user"`
 }
 
 type GetMessage struct {
@@ -80,4 +90,32 @@ func getMessages(c *fiber.Ctx, db *sql.DB) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(messages)
+}
+
+func getMessages0(username string, to_user string, db *sql.DB) ([]GetMessage, error) {
+	rows, err := db.Query("SELECT from_user, to_user, message FROM messages WHERE (from_user = ? AND to_user = ?) OR (to_user = ? AND from_user = ?)", username, to_user, username, to_user)
+	if err != nil {
+		return nil, err
+	}
+
+	var messages []GetMessage
+	for rows.Next() {
+		var m1 Message
+		if err := rows.Scan(&m1.From, &m1.To, &m1.Message); err != nil {
+			return nil, err
+		}
+		isSender := false
+		if m1.From == username {
+			isSender = true
+		}
+		gm1 := GetMessage{
+			IsSender: isSender,
+			Message:  m1.Message,
+		}
+		if m1.To == to_user {
+			messages = append(messages, gm1)
+		}
+	}
+
+	return messages, nil
 }

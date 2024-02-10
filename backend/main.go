@@ -2,10 +2,13 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
+	"log"
 	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
 
+	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 )
@@ -46,6 +49,88 @@ func main() {
 		return sendMessage(c, db)
 	})
 
+	app.Use("/ws", func(c *fiber.Ctx) error {
+		println("someone sent a request to /ws")
+		if websocket.IsWebSocketUpgrade(c) {
+			println("upgrading to websocket")
+			username, err := getUsernameFromToken(c.Query("token"))
+			println("websocket-username", username)
+			if err != nil || username == "" {
+				return fiber.ErrUnauthorized
+			}
+			c.Locals("username", username)
+			return c.Next()
+		}
+		return fiber.ErrUpgradeRequired
+	})
+
+	app.Get("/ws", websocket.New(func(c *websocket.Conn) {
+		username := c.Locals("username").(string)
+		println("username inside ws", username)
+		// c.Locals is added to the *websocket.Conn
+		// log.Println(c.Locals("allowed"))  // true
+		// log.Println(c.Params("id"))       // 123
+		// log.Println(c.Query("v"))         // 1.0
+		// log.Println(c.Cookies("session")) // ""
+
+		// websocket.Conn bindings https://pkg.go.dev/github.com/fasthttp/websocket?tab=doc#pkg-index
+		var (
+			mt  int
+			msg []byte
+			err error
+		)
+
+		for {
+			if mt, msg, err = c.ReadMessage(); err != nil {
+				log.Println("read:", err)
+				break
+			}
+			println("got message", string(msg))
+			var message1 Event
+			err := json.Unmarshal(msg, &message1)
+			if err != nil {
+				log.Println("failed json.Unmarshal:", err)
+				break
+			}
+			log.Printf("recv: %s", msg)
+			if message1.Type == "get_msgs" {
+				var getMsgReq GetMessagesRequest
+				err := json.Unmarshal(message1.Payload, &getMsgReq)
+				if err != nil {
+					log.Println("failed json.Unmarshal:", err)
+					break
+				}
+
+				messages, err := getMessages0(username, getMsgReq.ToUser, db)
+				if err != nil {
+					log.Println("failed getMessages0:", err)
+					break
+				}
+
+				var sendMessages Event
+				sendMessages.Type = "get_msgs_resp"
+				sendMessages.Payload, err = json.Marshal(messages)
+				if err != nil {
+					log.Println("failed json.Marshal sendMessages:", err)
+					break
+				}
+
+				c.WriteMessage(mt, sendMessages.Payload)
+
+				println("get_msgs", messages)
+
+			} else if message1.Type == "send_msg" {
+				println("send_msg", message1.Payload)
+			}
+
+			// if err = c.WriteMessage(mt, msg); err != nil {
+			// 	log.Println("write:", err)
+			// 	break
+			// }
+		}
+
+	}))
+
 	app.Listen(":3001")
 }
 
@@ -57,5 +142,3 @@ func connectDB() *sql.DB {
 	}
 	return db
 }
-
-var jwtSecret = []byte("secret")

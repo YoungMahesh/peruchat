@@ -152,3 +152,26 @@ func isValidJwt(c *fiber.Ctx) error {
 
 	return c.Next()
 }
+
+func getUsernameFromToken(token string) (string, error) {
+	println("websocket-token", token)
+	t, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+		return jwtSecret, nil
+	})
+	if err != nil {
+		return "", err
+	}
+	claims, ok := t.Claims.(jwt.MapClaims)
+	if !ok {
+		return "", err
+	}
+
+	// verify if token has expired
+	if claims["exp"] == nil || time.Now().After(time.Unix(int64(claims["exp"].(float64)), 0)) {
+		return "", err
+	}
+
+	return claims["username"].(string), nil
+}
+
+var jwtSecret = []byte("secret")

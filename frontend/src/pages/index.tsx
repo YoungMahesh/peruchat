@@ -14,6 +14,25 @@ export default function Home() {
     void (async () => {
       const _username = await authStore.retrieveUsername();
       setCurrUser(_username);
+
+      const _token = await authStore.retreiveToken();
+      const socket = new WebSocket(`ws://localhost:3001/ws?token=${_token}`);
+      // const socket = new WebSocket(`ws://localhost:3001/ws`);
+
+      socket.addEventListener("open", function (event) {
+        console.log("Connected to the WS Server");
+      });
+      socket.addEventListener("message", function (event) {
+        console.log("Message from server ", event.data);
+      })
+
+      socket.onopen = () => {
+        console.log("Connected to the server");
+      };
+
+      socket.onerror = function (event) {
+        console.error("WebSocket error observed:", Object.keys(event));
+      };
     })();
   }, []);
 
