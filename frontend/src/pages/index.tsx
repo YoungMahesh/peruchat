@@ -3,55 +3,14 @@
 import { Button } from "@nextui-org/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import ChatBox from "~/components/ChatBox";
+import { useUser } from "~/components/UserContext";
 import UsersList from "~/components/UsersList";
-import authStore from "~/utils/auth";
-import type { FetchedMessage } from "~/utils/types.utils";
 
 export default function Home() {
-  const [currUser, setCurrUser] = useState<string | null>(null);
   const [receiver, setReceiver] = useState<string>("");
-  const [messageList, setMessageList] = useState<FetchedMessage[]>([]);
-
-  useEffect(() => {
-    void (async () => {
-      const _username = await authStore.retrieveUsername();
-      setCurrUser(_username);
-
-      const _token = await authStore.retreiveToken();
-      const socket = new WebSocket(`ws://localhost:3001/ws?token=${_token}`);
-      // const socket = new WebSocket(`ws://localhost:3001/ws`);
-
-      socket.addEventListener("open", function (event) {
-        console.log("Connected to the WS Server");
-        const getMsgReq = {
-          type: "get_msgs",
-          payload: {
-            to_user: receiver,
-          },
-        };
-        socket.send(JSON.stringify(getMsgReq));
-      });
-      socket.addEventListener("message", async function (event) {
-        console.log("Message from server ", event.data);
-        const msgList = (await JSON.parse(event.data)) as unknown as
-          | FetchedMessage[]
-          | null;
-        console.log({ msgList });
-        if (msgList) setMessageList(msgList);
-        else setMessageList([]);
-      });
-
-      socket.onopen = () => {
-        console.log("Connected to the server");
-      };
-
-      socket.onerror = function (event) {
-        console.error("WebSocket error observed:", Object.keys(event));
-      };
-    })();
-  }, [receiver]);
+  const currUser = useUser() 
 
   return (
     <>
@@ -65,13 +24,12 @@ export default function Home() {
           <h3 className="text-center">Welcome to realtime-chat-app</h3>
           {(() => {
             if (currUser === null) return <p>Loading...</p>;
-            else if (currUser.length)
+            else if (currUser.username.length)
               return (
                 <ChatWindow
-                  currUsername={currUser}
+                  currUsername={currUser.username}
                   receiver={receiver}
                   setReceiver={setReceiver}
-                  msgList={messageList}
                 />
               );
             else return <LogInBox />;
@@ -107,18 +65,16 @@ const LogInBox = () => {
 const ChatWindow = ({
   currUsername,
   receiver,
-  msgList,
   setReceiver,
 }: {
   currUsername: string;
   receiver: string;
-  msgList: FetchedMessage[];
   setReceiver: (_: string) => void;
 }) => {
   return (
     <div className="grid" style={{ gridTemplateColumns: "25% 75%" }}>
       <UsersList currUsername={currUsername} setReceiver={setReceiver} />
-      <ChatBox msgList={msgList} sender={currUsername} receiver={receiver} />
+      <ChatBox sender={currUsername} receiver={receiver} />
     </div>
   );
 };
