@@ -107,15 +107,21 @@ func main() {
 					break
 				}
 
-				var sendMessages Event
+				var sendMessages SendMessageEvent
 				sendMessages.Type = "get_msgs_resp"
-				sendMessages.Payload, err = json.Marshal(messages)
+				sendMessages.Payload = messages
+				if err != nil {
+					log.Println("failed json.Marshal sendMessages.payload:", err)
+					break
+				}
+
+				// json.marshalling
+				sendMessagesJson, err := json.Marshal(sendMessages)
 				if err != nil {
 					log.Println("failed json.Marshal sendMessages:", err)
 					break
 				}
-
-				c.WriteMessage(mt, sendMessages.Payload)
+				c.WriteMessage(mt, sendMessagesJson)
 
 				println("get_msgs", messages)
 

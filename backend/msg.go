@@ -11,6 +11,10 @@ type SendMessage struct {
 	To      string `json:"to"`
 	Message string `json:"message"`
 }
+type SendMessageEvent struct {
+	Type    string       `json:"type"`
+	Payload []GetMessage `json:"payload"`
+}
 
 type NewMessage struct {
 	From    string `json:"from"`

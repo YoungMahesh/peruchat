@@ -3,6 +3,11 @@ export type FetchedMessage = {
   message: string;
 };
 
+export type Event1 = {
+  type: string;
+  payload: unknown;
+}
+
 export type LoggedInUserInfo = {
   username: string;
   token: string;

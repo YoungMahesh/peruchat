@@ -4,7 +4,7 @@ import { Input } from "@nextui-org/react";
 import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 import authStore from "~/utils/auth";
-import type { FetchedMessage } from "~/utils/types.utils";
+import type { Event1, FetchedMessage } from "~/utils/types.utils";
 import { useSocket } from "./SocketContext";
 
 export default function ChatBox({
@@ -17,12 +17,10 @@ export default function ChatBox({
   const [msgList1, setMsgList1] = useState<FetchedMessage[]>([]);
   const socket = useSocket();
 
-  console.log({ msgList1 });
   useEffect(() => {
     if (!socket) return;
     if (socket.readyState !== WebSocket.OPEN) return;
 
-    console.log({ receiver });
     const getMsgReq = {
       type: "get_msgs",
       payload: {
@@ -32,13 +30,16 @@ export default function ChatBox({
     socket.send(JSON.stringify(getMsgReq));
 
     socket.addEventListener("message", async function (event: MessageEvent) {
-      console.log("Message from server ", event);
-      const _msgList = (await JSON.parse(event.data)) as
-        | FetchedMessage[]
-        | null;
-      console.log(_msgList);
-      if (_msgList) setMsgList1(_msgList);
-      else setMsgList1([]);
+      try {
+        const _event = (await JSON.parse(event.data)) as Event1;
+        const eventName1 = "get_msgs_resp";
+        if (_event.type === eventName1) {
+          if (_event.payload === null) setMsgList1([]);
+          else setMsgList1(_event.payload as FetchedMessage[]);
+        }
+      } catch (err) {
+        console.error("Could not able to parse websocket-message", err);
+      }
     });
   }, [socket, receiver]);
 
