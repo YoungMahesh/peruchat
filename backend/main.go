@@ -41,14 +41,6 @@ func main() {
 		return usersList(c, db, uint16(currPage))
 	})
 
-	app.Get("/get_msgs", isValidJwt, func(c *fiber.Ctx) error {
-		return getMessages(c, db)
-	})
-
-	app.Post("/send_msg", isValidJwt, func(c *fiber.Ctx) error {
-		return sendMessage(c, db)
-	})
-
 	app.Use("/ws", func(c *fiber.Ctx) error {
 		println("someone sent a request to /ws")
 		if websocket.IsWebSocketUpgrade(c) {
