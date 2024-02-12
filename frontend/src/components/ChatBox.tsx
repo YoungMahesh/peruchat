@@ -46,16 +46,17 @@ export default function ChatBox({
   const sendMessage = async () => {
     const _token = await authStore.retreiveToken();
     if (!_token) return console.error("Invalid token");
+    if (!socket) return console.error("Socket not connected");
     try {
-      const res = await fetch("http://localhost:3001/send_msg", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: _token,
+      const sendMsgReq = JSON.stringify({
+        type: "send_msg",
+        payload: {
+          to: receiver,
+          message,
         },
-        body: JSON.stringify({ to: receiver, message }),
       });
-      if (res.status !== 201) return alert("could not able to send message");
+      socket.send(sendMsgReq);
+
       setMessage("");
       alert("message sent");
     } catch (error) {
