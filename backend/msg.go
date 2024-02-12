@@ -20,6 +20,11 @@ type NewMessage struct {
 	Message string `json:"message"`
 }
 
+type SendUsersEvent struct {
+	Type    string `json:"type"`
+	Payload []User `json:"payload"`
+}
+
 type Event struct {
 	Type    string          `json:"type"`
 	Payload json.RawMessage `json:"payload"`

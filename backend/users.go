@@ -34,3 +34,23 @@ func usersList(c *fiber.Ctx, db *sql.DB, currPage uint16) error {
 
 	return c.Status(http.StatusOK).JSON(users)
 }
+
+func usersList0(db *sql.DB, currPage uint16) ([]User, error) {
+
+	usersPerPage := uint16(10)
+	rows, err := db.Query("SELECT username FROM users LIMIT ? OFFSET ?", usersPerPage, (currPage-1)*usersPerPage)
+	if err != nil {
+		return nil, err
+	}
+
+	var users []User
+	for rows.Next() {
+		var u1 User
+		if err := rows.Scan(&u1.Username); err != nil {
+			return nil, err
+		}
+		users = append(users, u1)
+	}
+
+	return users, nil
+}

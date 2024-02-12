@@ -85,7 +85,23 @@ func main() {
 				break
 			}
 			log.Printf("recv: %s", msg)
-			if message1.Type == "get_msgs" {
+			if message1.Type == "get_users" {
+				users, err := usersList0(db, 1)
+				if err != nil {
+					log.Println("failed usersList0:", err)
+					break
+				}
+				var sendUsersEvent SendUsersEvent
+				sendUsersEvent.Type = "get_users_resp"
+				sendUsersEvent.Payload = users
+				sendUsersJson, err := json.Marshal(sendUsersEvent)
+				if err != nil {
+					log.Println("failed json.Marshal sendUsersEvent:", err)
+					break
+				}
+				c.WriteMessage(mt, sendUsersJson)
+				println("sent_users", users)
+			} else if message1.Type == "get_msgs" {
 				var getMsgReq GetMessagesRequest
 				err := json.Unmarshal(message1.Payload, &getMsgReq)
 				if err != nil {
@@ -107,7 +123,6 @@ func main() {
 					break
 				}
 
-				// json.marshalling
 				sendMessagesJson, err := json.Marshal(sendMessages)
 				if err != nil {
 					log.Println("failed json.Marshal sendMessages:", err)

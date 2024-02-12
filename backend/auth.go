@@ -120,39 +120,6 @@ func isValidUsername(str string) bool {
 	return true
 }
 
-func isValidJwt(c *fiber.Ctx) error {
-	tokenString := c.Get("Authorization")
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return jwtSecret, nil
-	})
-	if err != nil {
-		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
-			"message": "Could not able to parse token",
-		})
-	}
-	if !token.Valid {
-		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
-			"message": "Invalid token",
-		})
-	}
-
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
-			"message": "Could not parse claims",
-		})
-	}
-
-	if claims["exp"] == nil || time.Now().After(time.Unix(int64(claims["exp"].(float64)), 0)) {
-		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
-			"message": "Token has expired",
-		})
-	}
-	c.Locals("username", claims["username"])
-
-	return c.Next()
-}
-
 func getUsernameFromToken(token string) (string, error) {
 	println("websocket-token", token)
 	t, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
