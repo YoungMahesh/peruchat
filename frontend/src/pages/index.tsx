@@ -3,14 +3,22 @@
 import { Button } from "@nextui-org/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import {  useState } from "react";
+import {  useEffect, useState } from "react";
 import ChatBox from "~/components/ChatBox";
 import { useUser } from "~/components/UserContext";
 import UsersList from "~/components/UsersList";
+import authStore from "~/utils/auth";
 
 export default function Home() {
+  const router = useRouter()
   const [receiver, setReceiver] = useState<string>("");
   const currUser = useUser() 
+
+  useEffect(() => {
+    if (!localStorage.getItem(authStore.USER_IDENTY_KEY)) {
+      void router.push("/login");
+    }
+  }, [router]);
 
   return (
     <>
@@ -72,8 +80,8 @@ const ChatWindow = ({
   setReceiver: (_: string) => void;
 }) => {
   return (
-    <div className="grid" style={{ gridTemplateColumns: "25% 75%" }}>
-      <UsersList currUsername={currUsername} setReceiver={setReceiver} />
+    <div className="grid" style={{ gridTemplateColumns: "minmax(0, max-content) 1fr"  }}>
+      <UsersList currUsername={currUsername} receiver={receiver} setReceiver={setReceiver} />
       <ChatBox sender={currUsername} receiver={receiver} />
     </div>
   );

@@ -64,7 +64,7 @@ export default function ChatBox({
   };
 
   return (
-    <section>
+    <section className="p-3">
       <div className="flex flex-col">
         {msgList1.map((fm, idx) => (
           <p key={idx} className={`${fm.is_sender ? "self-end" : ""} m-2 p-1`}>

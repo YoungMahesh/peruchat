@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 
 export default function UsersList({
   currUsername,
+  receiver,
   setReceiver,
 }: {
   currUsername: string;
+  receiver: string;
   setReceiver: (_: string) => void;
 }) {
   const [usersList, setUserList] = useState<{ username: string }[]>([]);
@@ -32,11 +34,11 @@ export default function UsersList({
   }, [currUsername]);
 
   return (
-    <section className="flex flex-col">
+    <section className="flex flex-col m-2">
       {usersList.map((user, idx) => (
-        <div key={idx} onClick={() => setReceiver(user.username)}>
+        <p className={`text-center p-2 border rounded m-1 ${user.username === receiver ? 'text-black bg-white' : ''}`}  key={idx} onClick={() => setReceiver(user.username)}>
           {user.username}
-        </div>
+        </p>
       ))}
     </section>
   );
