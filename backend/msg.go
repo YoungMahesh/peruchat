@@ -28,11 +28,6 @@ type SendUsersEvent struct {
 	Payload []User `json:"payload"`
 }
 
-type Event struct {
-	Type    string          `json:"type"`
-	Payload json.RawMessage `json:"payload"`
-}
-
 func sendMessage0(username string, to string, message string, db *sql.DB) error {
 	_, err := db.Exec("INSERT INTO messages (from_user, to_user, message) VALUES (?, ?, ?)", username, to, message)
 	if err != nil {
