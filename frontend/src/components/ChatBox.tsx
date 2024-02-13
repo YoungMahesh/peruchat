@@ -19,7 +19,8 @@ export default function ChatBox({
 
   useEffect(() => {
     if (!socket) return;
-    if (socket.readyState !== WebSocket.OPEN) return;
+    if (socket.readyState !== WebSocket.OPEN)
+      return console.error("socket not ready");
 
     const getMsgReq = {
       type: "get_msgs",
@@ -66,24 +67,33 @@ export default function ChatBox({
 
   return (
     <section className="p-3">
-      <div className="flex flex-col">
-        {msgList1.map((fm, idx) => (
-          <p key={idx} className={`${fm.is_sender ? "self-end" : ""} m-2 p-1`}>
-            {fm.message}
-          </p>
-        ))}
-      </div>
-      <div className="flex items-center">
-        <Input
-          type="text"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-        />
-        <PaperAirplaneIcon
-          className="m-2 h-6 w-6 cursor-pointer"
-          onClick={sendMessage}
-        />
-      </div>
+      {receiver === "" ? (
+        <p className="text-center">Select a user to chat</p>
+      ) : (
+        <>
+          <div className="flex flex-col">
+            {msgList1.map((fm, idx) => (
+              <p
+                key={idx}
+                className={`${fm.is_sender ? "self-end" : ""} m-2 p-1`}
+              >
+                {fm.message}
+              </p>
+            ))}
+          </div>
+          <div className="flex items-center">
+            <Input
+              type="text"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+            />
+            <PaperAirplaneIcon
+              className="m-2 h-6 w-6 cursor-pointer"
+              onClick={sendMessage}
+            />
+          </div>
+        </>
+      )}
     </section>
   );
 }

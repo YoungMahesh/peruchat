@@ -2,37 +2,14 @@ package main
 
 import (
 	"database/sql"
-	"net/http"
+	"encoding/json"
+	"log"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/contrib/websocket"
 )
 
 type User struct {
 	Username string `json:"username"`
-}
-
-func usersList(c *fiber.Ctx, db *sql.DB, currPage uint16) error {
-
-	usersPerPage := uint16(10)
-	rows, err := db.Query("SELECT username FROM users LIMIT ? OFFSET ?", usersPerPage, (currPage-1)*usersPerPage)
-	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Could not connect database to get users",
-		})
-	}
-
-	var users []User
-	for rows.Next() {
-		var u1 User
-		if err := rows.Scan(&u1.Username); err != nil {
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"message": "Could not extract users from data",
-			})
-		}
-		users = append(users, u1)
-	}
-
-	return c.Status(http.StatusOK).JSON(users)
 }
 
 func usersList0(db *sql.DB, currPage uint16) ([]User, error) {
@@ -53,4 +30,22 @@ func usersList0(db *sql.DB, currPage uint16) ([]User, error) {
 	}
 
 	return users, nil
+}
+
+func handleGetUsers(c *websocket.Conn, mt int, db *sql.DB) {
+	users, err := usersList0(db, 1)
+	if err != nil {
+		log.Println("failed usersList0:", err)
+		return
+	}
+	var sendUsersEvent SendUsersEvent
+	sendUsersEvent.Type = "get_users_resp"
+	sendUsersEvent.Payload = users
+	sendUsersJson, err := json.Marshal(sendUsersEvent)
+	if err != nil {
+		log.Println("failed json.Marshal sendUsersEvent:", err)
+		return
+	}
+	c.WriteMessage(mt, sendUsersJson)
+	println("sent_users count", len(users))
 }

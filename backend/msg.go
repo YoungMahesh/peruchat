@@ -3,6 +3,9 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"log"
+
+	"github.com/gofiber/contrib/websocket"
 )
 
 type SendMessage struct {
@@ -78,4 +81,49 @@ func getMessages0(username string, to_user string, db *sql.DB) ([]GetMessage, er
 	}
 
 	return messages, nil
+}
+
+func handleGetMsgs(c *websocket.Conn, mt int, message1 Event, username string, db *sql.DB) {
+	var getMsgReq GetMessagesRequest
+	err := json.Unmarshal(message1.Payload, &getMsgReq)
+	if err != nil {
+		log.Println("failed json.Unmarshal:", err)
+		return
+	}
+
+	messages, err := getMessages0(username, getMsgReq.ToUser, db)
+	if err != nil {
+		log.Println("failed getMessages0:", err)
+		return
+	}
+
+	var sendMessages SendMessageEvent
+	sendMessages.Type = "get_msgs_resp"
+	sendMessages.Payload = messages
+
+	sendMessagesJson, err := json.Marshal(sendMessages)
+	if err != nil {
+		log.Println("failed json.Marshal sendMessages:", err)
+		return
+	}
+	c.WriteMessage(mt, sendMessagesJson)
+
+	println("get_msgs", messages)
+}
+
+func handleSendMsg(c *websocket.Conn, message1 Event, username string, db *sql.DB) {
+	var sendMsg SendMessage
+	err := json.Unmarshal(message1.Payload, &sendMsg)
+	if err != nil {
+		log.Println("failed json.Unmarshal:", err)
+		return
+	}
+
+	err = sendMessage0(username, sendMsg.To, sendMsg.Message, db)
+	if err != nil {
+		log.Println("failed sendMessage0:", err)
+		return
+	}
+
+	println("send_msg", message1.Payload)
 }

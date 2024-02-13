@@ -22,14 +22,15 @@ const MyApp: AppType = ({ Component, pageProps }) => {
       const _socket = new WebSocket(
         `ws://localhost:3001/ws?token=${_userInfo.token}`,
       );
-      setSocket(_socket);
       _socket.onopen = () => {
         console.log("Connected to the server");
+        setSocket(_socket);
       };
       _socket.onerror = function (event) {
         console.error("WebSocket error observed:", Object.keys(event));
       };
       return () => {
+        console.log("closing socket");
         _socket.close();
       };
     })();

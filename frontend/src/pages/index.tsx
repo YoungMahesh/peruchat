@@ -1,18 +1,18 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Button } from "@nextui-org/react";
-import Head from "next/head";
 import { useRouter } from "next/router";
-import {  useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import ChatBox from "~/components/ChatBox";
+import PageTitle from "~/components/PageTitle";
 import { useUser } from "~/components/UserContext";
 import UsersList from "~/components/UsersList";
 import authStore from "~/utils/auth";
 
 export default function Home() {
-  const router = useRouter()
+  const router = useRouter();
   const [receiver, setReceiver] = useState<string>("");
-  const currUser = useUser() 
+  const currUser = useUser();
 
   useEffect(() => {
     if (!localStorage.getItem(authStore.USER_IDENTY_KEY)) {
@@ -22,11 +22,7 @@ export default function Home() {
 
   return (
     <>
-      <Head>
-        <title>Realtime Chat</title>
-        <meta name="description" content="Realtime chat app" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+      <PageTitle pageName="Chat" pageDescription="" />
       <main>
         <div>
           <h3 className="text-center">Welcome to realtime-chat-app</h3>
@@ -80,8 +76,15 @@ const ChatWindow = ({
   setReceiver: (_: string) => void;
 }) => {
   return (
-    <div className="grid" style={{ gridTemplateColumns: "minmax(0, max-content) 1fr"  }}>
-      <UsersList currUsername={currUsername} receiver={receiver} setReceiver={setReceiver} />
+    <div
+      className="grid"
+      style={{ gridTemplateColumns: "minmax(0, max-content) 1fr" }}
+    >
+      <UsersList
+        currUsername={currUsername}
+        receiver={receiver}
+        setReceiver={setReceiver}
+      />
       <ChatBox sender={currUsername} receiver={receiver} />
     </div>
   );

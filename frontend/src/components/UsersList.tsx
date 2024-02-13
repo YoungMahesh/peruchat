@@ -1,6 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-misused-promises */
+
 import { useEffect, useState } from "react";
 import { useSocket } from "./SocketContext";
-import { Event1, FetchedRecipients } from "~/utils/types.utils";
+import type { Event1, FetchedRecipients } from "~/utils/types.utils";
 
 export default function UsersList({
   currUsername,
@@ -13,20 +16,20 @@ export default function UsersList({
 }) {
   const socket = useSocket();
   const [usersList, setUserList] = useState<{ username: string }[]>([]);
-  console.log({ usersList });
+
   useEffect(() => {
     void (async () => {
-      if (!socket) return console.error("socket not connected");
+      if (!socket) return;
       if (socket.readyState !== WebSocket.OPEN)
         return console.error("socket is not ready");
 
       console.log("sending get_users request");
-      socket.send("get_users");
+      socket.send(JSON.stringify({ type: "get_users", payload: null }));
 
       socket.addEventListener("message", async function (event: MessageEvent) {
         try {
           const _event = (await JSON.parse(event.data)) as Event1;
-          const eventName1 = "get_msgs_resp";
+          const eventName1 = "get_users_resp";
           if (_event.type === eventName1) {
             if (_event.payload === null) setUserList([]);
             else setUserList(_event.payload as FetchedRecipients[]);
@@ -35,26 +38,6 @@ export default function UsersList({
           console.error("Could not able to parse websocket-message", err);
         }
       });
-
-      // const fetchUsers = async () => {
-      //   try {
-      //     const res = await fetch("http://localhost:3001/users", {
-      //       method: "GET",
-      //       headers: { "Content-Type": "application/json" },
-      //     });
-
-      //     const _users = (await res.json()) as unknown as {
-      //       username: string;
-      //     }[];
-      //     if (res.status !== 200)
-      //       return alert("could not able to fetch users list");
-      //     setUserList(_users.filter((user) => user.username !== currUsername));
-      //   } catch (error) {
-      //     console.error(error);
-      //   }
-      // };
-
-      // void fetchUsers();
     })();
   }, [currUsername, socket]);
 

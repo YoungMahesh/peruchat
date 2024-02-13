@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"log"
-	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
 
@@ -30,17 +29,6 @@ func main() {
 		return userRegister(c, db)
 	})
 
-	// users
-	app.Get("/users", func(c *fiber.Ctx) error {
-		// get parameter from query string, currPage
-		currPageStr := c.Query("currPage")
-		currPage, err := strconv.ParseUint(currPageStr, 10, 16)
-		if err != nil {
-			currPage = 1
-		}
-		return usersList(c, db, uint16(currPage))
-	})
-
 	app.Use("/ws", func(c *fiber.Ctx) error {
 		println("someone sent a request to /ws")
 		if websocket.IsWebSocketUpgrade(c) {
@@ -48,12 +36,12 @@ func main() {
 			username, err := getUsernameFromToken(c.Query("token"))
 			println("websocket-username", username)
 			if err != nil || username == "" {
-				return fiber.ErrUnauthorized
+				return c.Status(fiber.StatusUnauthorized).SendString("Unauthorized")
 			}
 			c.Locals("username", username)
 			return c.Next()
 		}
-		return fiber.ErrUpgradeRequired
+		return c.Status(fiber.StatusUpgradeRequired).SendString("Upgrade Required")
 	})
 
 	app.Get("/ws", websocket.New(func(c *websocket.Conn) {
@@ -86,67 +74,11 @@ func main() {
 			}
 			log.Printf("recv: %s", msg)
 			if message1.Type == "get_users" {
-				users, err := usersList0(db, 1)
-				if err != nil {
-					log.Println("failed usersList0:", err)
-					break
-				}
-				var sendUsersEvent SendUsersEvent
-				sendUsersEvent.Type = "get_users_resp"
-				sendUsersEvent.Payload = users
-				sendUsersJson, err := json.Marshal(sendUsersEvent)
-				if err != nil {
-					log.Println("failed json.Marshal sendUsersEvent:", err)
-					break
-				}
-				c.WriteMessage(mt, sendUsersJson)
-				println("sent_users", users)
+				handleGetUsers(c, mt, db)
 			} else if message1.Type == "get_msgs" {
-				var getMsgReq GetMessagesRequest
-				err := json.Unmarshal(message1.Payload, &getMsgReq)
-				if err != nil {
-					log.Println("failed json.Unmarshal:", err)
-					break
-				}
-
-				messages, err := getMessages0(username, getMsgReq.ToUser, db)
-				if err != nil {
-					log.Println("failed getMessages0:", err)
-					break
-				}
-
-				var sendMessages SendMessageEvent
-				sendMessages.Type = "get_msgs_resp"
-				sendMessages.Payload = messages
-				if err != nil {
-					log.Println("failed json.Marshal sendMessages.payload:", err)
-					break
-				}
-
-				sendMessagesJson, err := json.Marshal(sendMessages)
-				if err != nil {
-					log.Println("failed json.Marshal sendMessages:", err)
-					break
-				}
-				c.WriteMessage(mt, sendMessagesJson)
-
-				println("get_msgs", messages)
-
+				handleGetMsgs(c, mt, message1, username, db)
 			} else if message1.Type == "send_msg" {
-				var sendMsg SendMessage
-				err := json.Unmarshal(message1.Payload, &sendMsg)
-				if err != nil {
-					log.Println("failed json.Unmarshal:", err)
-					break
-				}
-
-				err = sendMessage0(username, sendMsg.To, sendMsg.Message, db)
-				if err != nil {
-					log.Println("failed sendMessage0:", err)
-					break
-				}
-
-				println("send_msg", message1.Payload)
+				handleSendMsg(c, message1, username, db)
 			}
 
 			// if err = c.WriteMessage(mt, msg); err != nil {

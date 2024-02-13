@@ -1,12 +1,12 @@
 /* eslint-disable @next/next/no-img-element */
 import { Button, Input } from "@nextui-org/react";
-import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import {  toast } from "react-toastify";
+import { toast } from "react-toastify";
+import PageTitle from "~/components/PageTitle";
 import authStore from "~/utils/auth";
-import {  toastOptions } from "~/utils/constants";
+import { toastOptions } from "~/utils/constants";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -74,11 +74,7 @@ export default function RegisterPage() {
 
   return (
     <>
-      <Head>
-        <title>Register | Peru Chat</title>
-        <meta name="description" content="Register page for peru chat" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+      <PageTitle pageName="Register" pageDescription="Register page" />
       <main className="p-2">
         <div className="flex items-center justify-center">
           <img
