@@ -22,26 +22,32 @@ export default function ChatBox({
     if (socket.readyState !== WebSocket.OPEN)
       return console.error("socket not ready");
 
-    const getMsgReq = {
-      type: "get_msgs",
-      payload: {
-        to_user: receiver,
-      },
-    };
-    socket.send(JSON.stringify(getMsgReq));
+    socket.send(
+      JSON.stringify({
+        type: "get_msgs",
+        payload: {
+          to_user: receiver,
+        },
+      }),
+    );
 
-    socket.addEventListener("message", async function (event: MessageEvent) {
+    const messageListener = async (event: MessageEvent) => {
       try {
         const _event = (await JSON.parse(event.data)) as Event1;
         const eventName1 = "get_msgs_resp";
         if (_event.type === eventName1) {
+          console.log("received messages", _event.payload);
           if (_event.payload === null) setMsgList1([]);
           else setMsgList1(_event.payload as FetchedMessage[]);
         }
       } catch (err) {
         console.error("Could not able to parse websocket-message", err);
       }
-    });
+    };
+    socket.addEventListener("message", messageListener);
+    return () => {
+      socket.removeEventListener("message", messageListener);
+    };
   }, [socket, receiver]);
 
   const sendMessage = async () => {

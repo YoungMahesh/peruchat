@@ -13,14 +13,15 @@ type Client struct {
 	connection *websocket.Conn
 	manager    *Manager
 	egress     chan Event
-	chatroom   string
+	username   string
 }
 
-func (manager *Manager) setupClient(conn *websocket.Conn) *Client {
+func (manager *Manager) setupClient(conn *websocket.Conn, username string) *Client {
 	client := &Client{
 		connection: conn,
 		manager:    manager,
 		egress:     make(chan Event),
+		username:   username,
 	}
 
 	manager.Lock()
@@ -64,21 +65,7 @@ func (client *Client) readMessages() {
 			continue
 		}
 
-		users, err := handler(client.manager.db, client, message1)
-		if err != nil {
-			log.Println("failed usersList0:", err)
-			return
-		}
-		var sendUsersEvent Event
-		sendUsersEvent.Type = "get_users_resp"
-		sendUsersEvent.Payload, err = json.Marshal(users)
-		if err != nil {
-			log.Println("failed json.Marshal sendUsersEvent:", err)
-			return
-		}
-		client.egress <- sendUsersEvent
-		// client.connection.WriteMessage(mt, sendUsersJson)
-
+		handler(client, message1)
 	}
 }
 

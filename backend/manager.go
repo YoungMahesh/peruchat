@@ -22,6 +22,7 @@ func NewManager(ctx context.Context, db *sql.DB) *Manager {
 
 	m.Lock() // can use because of sync.RWMutex
 	m.handlers["get_users"] = getUsersHandler
+	m.handlers["get_msgs"] = getChatMessagesHandler
 	m.Unlock()
 
 	return m
