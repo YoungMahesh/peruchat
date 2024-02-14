@@ -20,7 +20,9 @@ func getUsersHandler(client *Client, event Event) error {
 	if err != nil {
 		return err
 	}
-
+	type User struct {
+		Username string `json:"username"`
+	}
 	var users []User
 	for rows.Next() {
 		var u1 User
@@ -46,6 +48,9 @@ func getChatMessagesHandler(client *Client, event Event) error {
 	println("----------------------------- getChatMessagesHandler --------------------------")
 
 	// extract payload from event
+	type GetMessagesRequest struct {
+		ToUser string `json:"to_user"`
+	}
 	var getMsgReq GetMessagesRequest
 	err := json.Unmarshal(event.Payload, &getMsgReq)
 	if err != nil {
@@ -58,6 +63,15 @@ func getChatMessagesHandler(client *Client, event Event) error {
 	if err != nil {
 		println("getChatMessagesHandler: failed to fetch from database", err)
 		return err
+	}
+	type GetMessage struct {
+		IsSender bool   `json:"is_sender"`
+		Message  string `json:"message"`
+	}
+	type Message struct {
+		From    string `json:"from"`
+		To      string `json:"to"`
+		Message string `json:"message"`
 	}
 	var messages []GetMessage
 	for rows.Next() {
@@ -85,5 +99,34 @@ func getChatMessagesHandler(client *Client, event Event) error {
 		return err
 	}
 	client.egress <- sendMessages
+	return nil
+}
+
+func sendChatMessagesHandler(client *Client, event Event) error {
+	println("----------------------------- sendChat --------------------------")
+
+	// extract payload from event
+	type SendMessage struct {
+		To      string `json:"to"`
+		Message string `json:"message"`
+	}
+	var sendMsg SendMessage
+	err := json.Unmarshal(event.Payload, &sendMsg)
+	if err != nil {
+		log.Println("failed json.Unmarshal:", err)
+		return err
+	}
+	// send data to database
+	_, err = client.manager.db.Exec("INSERT INTO messages (from_user, to_user, message) VALUES (?, ?, ?)", client.username, sendMsg.To, sendMsg.Message)
+
+	// send data to client
+	// var sendMessages Event
+	// sendMessages.Type = "get_msgs_resp"
+	// sendMessages.Payload, err = json.Marshal(messages)
+	// if err != nil {
+	// 	log.Println("getChatMessageHandler: failed json.Marshal:", err)
+	// 	return err
+	// }
+	// client.egress <- sendMessages
 	return nil
 }
