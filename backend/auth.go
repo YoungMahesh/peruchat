@@ -121,7 +121,7 @@ func isValidUsername(str string) bool {
 }
 
 func getUsernameFromToken(token string) (string, error) {
-	println("websocket-token", token)
+	// println("websocket-token", token)
 	t, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		return jwtSecret, nil
 	})

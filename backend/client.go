@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 
 	"github.com/gofiber/contrib/websocket"
 )
@@ -15,26 +16,41 @@ type Client struct {
 	chatroom   string
 }
 
-func (manager *Manager) CreateClient(c *websocket.Conn) *Client {
+func (manager *Manager) setupClient(conn *websocket.Conn) *Client {
 	client := &Client{
-		connection: c,
+		connection: conn,
 		manager:    manager,
 		egress:     make(chan Event),
 	}
 
+	manager.Lock()
 	manager.clients[client] = true
+	manager.Unlock()
+
+	go client.readMessages()
+	// TODO: make client.writeMessages() a goroutine
+	// currently, if we make it goroutine, the program is closing websocket connection
+	//   as goroutine works in parallel
+	client.writeMessaages()
+
+	println("--------------client setup done")
 	return client
 }
 
 func (client *Client) readMessages() {
-
+	var (
+		// mt  int
+		msg []byte
+		err error
+	)
 	for {
-		mt, msg, err := client.connection.ReadMessage()
+		_, msg, err = client.connection.ReadMessage()
 		if err != nil {
-			println("readMessage: failed", err)
+			println("client.readMessage: failed", err)
 			break
 		}
 
+		println("client.readMessage got message", string(msg))
 		var message1 Event
 		err = json.Unmarshal(msg, &message1)
 		if err != nil {
@@ -44,11 +60,47 @@ func (client *Client) readMessages() {
 
 		handler, ok := client.manager.handlers[message1.Type]
 		if !ok {
-			println("readMessage: handler not found")
-			break
+			println("readMessage: handler not found for", message1.Type)
+			continue
 		}
 
-		users, err := handler(client, message1)
+		users, err := handler(client.manager.db, client, message1)
+		if err != nil {
+			log.Println("failed usersList0:", err)
+			return
+		}
+		var sendUsersEvent Event
+		sendUsersEvent.Type = "get_users_resp"
+		sendUsersEvent.Payload, err = json.Marshal(users)
+		if err != nil {
+			log.Println("failed json.Marshal sendUsersEvent:", err)
+			return
+		}
+		client.egress <- sendUsersEvent
+		// client.connection.WriteMessage(mt, sendUsersJson)
 
+	}
+}
+
+func (client *Client) writeMessaages() {
+	for {
+		message, ok := <-client.egress
+		log.Println("client.writeMessages: received", message, ok)
+		if !ok {
+			println("client.writeMessages: egress not ok")
+			continue
+		}
+
+		messageText, err := json.Marshal(message)
+		if err != nil {
+			log.Println("client.writeMessage: failed json.Marshal:", err)
+			continue
+		}
+
+		println("sent_users", messageText)
+		err = client.connection.WriteMessage(websocket.TextMessage, messageText)
+		if err != nil {
+			log.Println("failed client.writeMessage:", err)
+		}
 	}
 }

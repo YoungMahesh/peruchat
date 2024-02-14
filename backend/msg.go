@@ -103,7 +103,7 @@ func handleGetMsgs(c *websocket.Conn, mt int, message1 Event, username string, d
 	}
 	c.WriteMessage(mt, sendMessagesJson)
 
-	println("get_msgs", messages)
+	// println("get_msgs", messages)
 }
 
 func handleSendMsg(c *websocket.Conn, message1 Event, username string, db *sql.DB) {

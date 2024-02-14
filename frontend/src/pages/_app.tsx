@@ -20,7 +20,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
       setUser(_userInfo);
 
       const _socket = new WebSocket(
-        `ws://localhost:3001/ws?token=${_userInfo.token}`,
+        `ws://localhost:3001/ws?token=${_userInfo.token}&v=1`,
       );
       _socket.onopen = () => {
         console.log("Connected to the server");
