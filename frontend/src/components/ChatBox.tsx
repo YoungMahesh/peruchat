@@ -4,7 +4,7 @@ import { Input } from "@nextui-org/react";
 import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 import authStore from "~/utils/auth";
-import type { Event1, FetchedMessage } from "~/utils/types.utils";
+import type { Event1, FetchedMessage, NewMessage } from "~/utils/types.utils";
 import { useSocket } from "./SocketContext";
 
 export default function ChatBox({
@@ -34,11 +34,17 @@ export default function ChatBox({
     const messageListener = async (event: MessageEvent) => {
       try {
         const _event = (await JSON.parse(event.data)) as Event1;
-        const eventName1 = "get_msgs_resp";
-        if (_event.type === eventName1) {
-          console.log("received messages", _event.payload);
+        if (_event.type === "get_msgs_resp") {
           if (_event.payload === null) setMsgList1([]);
           else setMsgList1(_event.payload as FetchedMessage[]);
+        } else if (_event.type === "send_msg_resp") {
+          if (_event.payload !== null) {
+            const newMsg = _event.payload as NewMessage;
+            setMsgList1((prevMsgList) => [
+              ...prevMsgList,
+              { is_sender: newMsg.from !== receiver, message: newMsg.message },
+            ]);
+          }
         }
       } catch (err) {
         console.error("Could not able to parse websocket-message", err);
@@ -63,9 +69,7 @@ export default function ChatBox({
         },
       });
       socket.send(sendMsgReq);
-
       setMessage("");
-      alert("message sent");
     } catch (error) {
       console.error(error);
     }

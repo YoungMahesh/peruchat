@@ -118,15 +118,28 @@ func sendChatMessagesHandler(client *Client, event Event) error {
 	}
 	// send data to database
 	_, err = client.manager.db.Exec("INSERT INTO messages (from_user, to_user, message) VALUES (?, ?, ?)", client.username, sendMsg.To, sendMsg.Message)
+	if err != nil {
+		log.Println("sendChatMessagesHandler: failed to insert into database:", err)
+		return err
+	}
 
 	// send data to client
-	// var sendMessages Event
-	// sendMessages.Type = "get_msgs_resp"
-	// sendMessages.Payload, err = json.Marshal(messages)
-	// if err != nil {
-	// 	log.Println("getChatMessageHandler: failed json.Marshal:", err)
-	// 	return err
-	// }
-	// client.egress <- sendMessages
+	var storedMessage Event
+	storedMessage.Type = "send_msg_resp"
+	type StoredMessage struct {
+		From    string `json:"from"`
+		To      string `json:"to"`
+		Message string `json:"message"`
+	}
+	storedMessage.Payload, err = json.Marshal(&StoredMessage{
+		From:    client.username,
+		To:      sendMsg.To,
+		Message: sendMsg.Message,
+	})
+	if err != nil {
+		log.Println("storedMessageHandler: failed json.Marshal:", err)
+		return err
+	}
+	client.egress <- storedMessage
 	return nil
 }

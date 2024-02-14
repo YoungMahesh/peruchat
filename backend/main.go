@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"database/sql"
-	// "encoding/json"
-	// "log"
 
 	_ "github.com/go-sql-driver/mysql"
 
@@ -35,12 +33,10 @@ func main() {
 		return userRegister(c, db)
 	})
 
+	// middleware for '/ws' to check if the user is authenticated
 	app.Use("/ws", func(c *fiber.Ctx) error {
-		// println("someone sent a request to /ws")
 		if websocket.IsWebSocketUpgrade(c) {
-			// println("upgrading to websocket")
 			username, err := getUsernameFromToken(c.Query("token"))
-			// println("websocket-username", username)
 			if err != nil || username == "" {
 				println("username ")
 				return c.Status(fiber.StatusUnauthorized).SendString("Unauthorized")
@@ -54,49 +50,11 @@ func main() {
 	app.Get("/ws", websocket.New(func(c *websocket.Conn) {
 		username := c.Locals("username").(string)
 		println("username inside ws", username)
-		// c.Locals is added to the *websocket.Conn
 		// log.Println(c.Locals("allowed"))  // true
 		// log.Println(c.Params("id"))       // 123
 		// log.Println(c.Query("v")) // 1.0
 		// log.Println(c.Cookies("session")) // ""
-
 		manager.setupClient(c, username)
-
-		// websocket.Conn bindings https://pkg.go.dev/github.com/fasthttp/websocket?tab=doc#pkg-index
-		// var (
-		// 	mt  int
-		// 	msg []byte
-		// 	err error
-		// )
-
-		// for {
-		// 	if mt, msg, err = c.ReadMessage(); err != nil {
-		// 		log.Println("read:", err)
-		// 		break
-		// 	}
-		// 	// println("got message", string(msg))
-		// 	var message1 Event
-		// 	err := json.Unmarshal(msg, &message1)
-		// 	if err != nil {
-		// 		log.Println("failed json.Unmarshal:", err)
-		// 		break
-		// 	}
-		// 	// log.Printf("recv: %s", msg)
-		// 	// if message1.Type == "get_users" {
-		// 	// 	handleGetUsers(c, mt, db)
-		// 	// } else
-		// 	if message1.Type == "get_msgs" {
-		// 		handleGetMsgs(c, mt, message1, username, db)
-		// 	} else if message1.Type == "send_msg" {
-		// 		handleSendMsg(c, message1, username, db)
-		// 	}
-
-		// 	// if err = c.WriteMessage(mt, msg); err != nil {
-		// 	// 	log.Println("write:", err)
-		// 	// 	break
-		// 	// }
-		// }
-
 	}))
 
 	app.Listen(":3001")

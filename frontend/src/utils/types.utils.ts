@@ -3,6 +3,13 @@ export type FetchedMessage = {
   message: string;
 };
 
+
+export type NewMessage = {
+  from: string;
+  to: string;
+  message: string;
+};
+
 export type FetchedRecipients = {
   username: string;
 };
