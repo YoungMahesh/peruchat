@@ -4,6 +4,7 @@ import { Button } from "@nextui-org/react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import ChatBox from "~/components/ChatBox";
+import Header from "~/components/Header";
 import PageTitle from "~/components/PageTitle";
 import { useUser } from "~/components/UserContext";
 import UsersList from "~/components/UsersList";
@@ -24,8 +25,8 @@ export default function Home() {
     <>
       <PageTitle pageName="Chat" pageDescription="" />
       <main>
+        <Header />
         <div>
-          <h3 className="text-center">Welcome to realtime-chat-app</h3>
           {(() => {
             if (currUser === null) return <p>Loading...</p>;
             else if (currUser.username.length)

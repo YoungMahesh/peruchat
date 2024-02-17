@@ -43,7 +43,6 @@ class AuthStore {
       const _userInfo = (await JSON.parse(_userInfo0 ?? "")) as LoggedInUserInfo;
       return _userInfo ?? null;
     } catch (err) {
-      console.error(err);
       return null;
     }
   }
