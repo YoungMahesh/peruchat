@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"log"
+	"time"
 
 	"github.com/gofiber/contrib/websocket"
 )
@@ -14,6 +15,16 @@ type Client struct {
 	manager    *Manager
 	egress     chan Event
 	username   string
+}
+
+var (
+	pongWait     = time.Second * 10
+	pingInterval = (pongWait * 9) / 10
+)
+
+func (client *Client) pongHandler(pongMsg string) error {
+	log.Println("received pong", pongMsg)
+	return client.connection.SetReadDeadline(time.Now().Add(pongWait))
 }
 
 func (manager *Manager) setupClient(conn *websocket.Conn, username string) *Client {
@@ -39,13 +50,10 @@ func (manager *Manager) setupClient(conn *websocket.Conn, username string) *Clie
 }
 
 func (client *Client) readMessages() {
-	var (
-		// mt  int
-		msg []byte
-		err error
-	)
+	client.connection.SetPongHandler(client.pongHandler)
+
 	for {
-		_, msg, err = client.connection.ReadMessage()
+		_, msg, err := client.connection.ReadMessage()
 		if err != nil {
 			println("client.readMessage: failed", err)
 			break
@@ -70,24 +78,40 @@ func (client *Client) readMessages() {
 }
 
 func (client *Client) writeMessaages() {
+	ticker := time.NewTicker(pingInterval)
+	defer func() {
+		client.manager.removeClient(client)
+		ticker.Stop()
+	}()
+
 	for {
-		message, ok := <-client.egress
-		log.Println("client.writeMessages: received", message, ok)
-		if !ok {
-			println("client.writeMessages: egress not ok")
-			continue
-		}
+		select {
+		case message, ok := <-client.egress:
+			log.Println("client.writeMessages: received", message, ok)
+			if !ok {
+				println("client.writeMessages: egress not ok")
+				continue
+			}
 
-		messageText, err := json.Marshal(message)
-		if err != nil {
-			log.Println("client.writeMessage: failed json.Marshal:", err)
-			continue
-		}
+			messageText, err := json.Marshal(message)
+			if err != nil {
+				log.Println("client.writeMessage: failed json.Marshal:", err)
+				continue
+			}
 
-		println("sent_users", messageText)
-		err = client.connection.WriteMessage(websocket.TextMessage, messageText)
-		if err != nil {
-			log.Println("failed client.writeMessage:", err)
+			println("sent_users", messageText)
+			err = client.connection.WriteMessage(websocket.TextMessage, messageText)
+			if err != nil {
+				log.Println("failed client.writeMessage:", err)
+			}
+
+		case <-ticker.C:
+			log.Println("sending ping")
+			err := client.connection.WriteMessage(websocket.PingMessage, nil)
+			if err != nil {
+				log.Println("client.writeMessages: failed sending ping:", err)
+				return
+			}
 		}
 	}
 }

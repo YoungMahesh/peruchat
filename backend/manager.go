@@ -28,3 +28,13 @@ func NewManager(ctx context.Context, db *sql.DB) *Manager {
 
 	return m
 }
+
+func (manager *Manager) removeClient(client *Client) {
+	manager.Lock()
+	defer manager.Unlock()
+
+	if _, ok := manager.clients[client]; ok {
+		client.connection.Close()
+		delete(manager.clients, client)
+	}
+}
