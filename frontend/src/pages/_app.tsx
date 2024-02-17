@@ -1,5 +1,5 @@
 import { type AppType } from "next/dist/shared/lib/utils";
-import { NextUIProvider, User } from "@nextui-org/react";
+import { NextUIProvider  } from "@nextui-org/react";
 import { ToastContainer } from "react-toastify";
 import "~/styles/globals.css";
 import "react-toastify/dist/ReactToastify.css";
@@ -23,14 +23,13 @@ const MyApp: AppType = ({ Component, pageProps }) => {
         `ws://localhost:3001/ws?token=${_userInfo.token}&v=1`,
       );
       _socket.onopen = () => {
-        console.log("Connected to the server");
+        console.log("connected to the websockets");
         setSocket(_socket);
       };
       _socket.onerror = function (event) {
         console.error("WebSocket error observed:", Object.keys(event));
       };
       return () => {
-        console.log("closing socket");
         _socket.close();
       };
     })();

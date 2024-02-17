@@ -33,29 +33,22 @@ func main() {
 		return userRegister(c, db)
 	})
 
-	// middleware for '/ws' to check if the user is authenticated
-	app.Use("/ws", func(c *fiber.Ctx) error {
+	app.Get("/ws", func(c *fiber.Ctx) error {
 		if websocket.IsWebSocketUpgrade(c) {
 			username, err := getUsernameFromToken(c.Query("token"))
+			println("token", c.Query("token"))
 			if err != nil || username == "" {
 				println("username ")
 				return c.Status(fiber.StatusUnauthorized).SendString("Unauthorized")
 			}
-			c.Locals("username", username)
-			return c.Next()
+			println("username inside ws", username)
+
+			return websocket.New(func(wconn *websocket.Conn) {
+				manager.setupClient(wconn, username)
+			})(c)
 		}
 		return c.Status(fiber.StatusUpgradeRequired).SendString("Upgrade Required")
 	})
-
-	app.Get("/ws", websocket.New(func(c *websocket.Conn) {
-		username := c.Locals("username").(string)
-		println("username inside ws", username)
-		// log.Println(c.Locals("allowed"))  // true
-		// log.Println(c.Params("id"))       // 123
-		// log.Println(c.Query("v")) // 1.0
-		// log.Println(c.Cookies("session")) // ""
-		manager.setupClient(c, username)
-	}))
 
 	app.Listen(":3001")
 }
