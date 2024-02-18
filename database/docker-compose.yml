@@ -7,7 +7,14 @@ services:
     restart: always
     environment:
       # defaut user: root
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD} 
+
+      # run `docker compose config` in current directory to see password received by this container from .env
+
+      # after container is created, you cannot change mysql-password from here,
+      #   you have to change it from inside the container by executing: 
+      #     `docker exec -it mysql mysql -uroot -p`, enter your current password when prompted, then run:
+      #     mysql> ALTER USER 'root'@'%' IDENTIFIED BY 'new-password';
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     ports:
       - 3307:3306
     volumes:
