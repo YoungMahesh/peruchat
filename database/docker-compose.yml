@@ -7,7 +7,7 @@ services:
     restart: always
     environment:
       # defaut user: root
-      MYSQL_ROOT_PASSWORD: 930adf4c5b27ddde79e6
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD} 
     ports:
       - 3307:3306
     volumes:
