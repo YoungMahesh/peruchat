@@ -31,8 +31,7 @@ export default function RegisterPage() {
         alert(data.message);
         return toast.error(data.message, toastOptions);
       }
-
-      localStorage.setItem(authStore.USER_IDENTY_KEY, JSON.stringify(username));
+      alert("Registered successfully, you can now login with your credentials.");
       void router.push("/");
     } catch (error) {
       console.error(error);

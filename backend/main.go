@@ -3,12 +3,16 @@ package main
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"log"
+	"os"
 
 	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -54,7 +58,12 @@ func main() {
 }
 
 func connectDB() *sql.DB {
-	db, err := sql.Open("mysql", "root:930adf4c5b27ddde79e6@tcp(127.0.0.1:3307)/realtime_chat")
+	err := godotenv.Load("../database/.env")
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+	password := os.Getenv("MYSQL_ROOT_PASSWORD")
+	db, err := sql.Open("mysql", fmt.Sprintf("root:%s@tcp(127.0.0.1:3308)/peru_db", password))
 
 	if err != nil {
 		panic(err.Error())

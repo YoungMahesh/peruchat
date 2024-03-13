@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   mysql:
-    container_name: mysql
+    container_name: peruchat_mysql
     image: mysql:8.3.0
     restart: always
     environment:
@@ -11,17 +11,19 @@ services:
       # run `docker compose config` in current directory to see password received by this container from .env
 
       # after container is created, you cannot change mysql-password from here,
-      #   you have to change it from inside the container by executing: 
+      #   you have to change it from inside the container by executing:
       #     `docker exec -it mysql mysql -uroot -p`, enter your current password when prompted, then run:
       #     mysql> ALTER USER 'root'@'%' IDENTIFIED BY 'new-password';
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     ports:
-      - 3307:3306
+      - 3308:3306
     volumes:
       - ./mysql_data:/var/lib/mysql
+    networks:
+      - peruchat
 
   phpmyadmin:
-    container_name: phpmyadmin
+    container_name: peruchat_phpmyadmin
     image: phpmyadmin:5.2.1
     restart: always
     environment:
@@ -30,4 +32,9 @@ services:
       UPLOAD_LIMIT: 100M
       # - PMA_ARBITRARY=1 # allow user to connect arbitrary server by providing "Server" field during login
     ports:
-      - 5300:80
+      - 5301:80
+    networks:
+      - peruchat
+
+networks:
+  peruchat:
