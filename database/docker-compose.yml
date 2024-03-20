@@ -27,7 +27,7 @@ services:
     image: phpmyadmin:5.2.1
     restart: always
     environment:
-      PMA_HOST: mysql
+      PMA_HOST: peruchat_mysql
       PMA_PORT: 3306
       UPLOAD_LIMIT: 100M
       # - PMA_ARBITRARY=1 # allow user to connect arbitrary server by providing "Server" field during login
