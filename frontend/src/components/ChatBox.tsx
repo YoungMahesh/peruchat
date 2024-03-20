@@ -96,6 +96,7 @@ export default function ChatBox({
               type="text"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={(e) => (e.key === "Enter" ? sendMessage() : null)}
             />
             <PaperAirplaneIcon
               className="m-2 h-6 w-6 cursor-pointer"
