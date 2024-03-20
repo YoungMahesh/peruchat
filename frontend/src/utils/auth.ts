@@ -15,6 +15,10 @@ class AuthStore {
     );
   }
 
+  deleteToken() {
+    localStorage.removeItem(this.USER_IDENTY_KEY);
+  }
+
   async retrieveUsername() {
     try {
       const _userInfo0 = localStorage.getItem(this.USER_IDENTY_KEY);

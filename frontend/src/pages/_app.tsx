@@ -30,6 +30,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
       };
       _socket.onerror = function (event) {
         console.error("WebSocket error observed:", Object.keys(event));
+        authStore.deleteToken();
       };
       return () => {
         _socket.close();

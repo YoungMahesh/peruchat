@@ -45,6 +45,14 @@ func main() {
 				println("username ")
 				return c.Status(fiber.StatusUnauthorized).SendString("Unauthorized")
 			}
+
+			// verify if username exists in the database
+			var dbUsername string
+			err = db.QueryRow("SELECT username FROM users WHERE username = ?", username).Scan(&dbUsername)
+			if err != nil {
+				return c.Status(fiber.StatusNotFound).SendString("Username not found")
+			}
+
 			println("username inside ws", username)
 
 			return websocket.New(func(wconn *websocket.Conn) {
