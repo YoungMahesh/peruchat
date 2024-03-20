@@ -1,7 +1,7 @@
 version: "3.7"
 
 services:
-  mysql:
+  peruchat_mysql:
     container_name: peruchat_mysql
     image: mysql:8.3.0
     restart: always
@@ -22,7 +22,7 @@ services:
     networks:
       - peruchat
 
-  phpmyadmin:
+  peruchat_phpmyadmin:
     container_name: peruchat_phpmyadmin
     image: phpmyadmin:5.2.1
     restart: always
