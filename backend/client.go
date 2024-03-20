@@ -103,6 +103,7 @@ func (client *Client) writeMessaages() {
 			err = client.connection.WriteMessage(websocket.TextMessage, messageText)
 			if err != nil {
 				log.Println("failed client.writeMessage:", err)
+				continue
 			}
 
 		case <-ticker.C:

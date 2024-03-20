@@ -102,14 +102,15 @@ func getChatMessagesHandler(client *Client, event Event) error {
 	return nil
 }
 
+type SendMessage struct {
+	To      string `json:"to"`
+	Message string `json:"message"`
+}
+
 func sendChatMessagesHandler(client *Client, event Event) error {
 	println("----------------------------- sendChat --------------------------")
 
 	// extract payload from event
-	type SendMessage struct {
-		To      string `json:"to"`
-		Message string `json:"message"`
-	}
 	var sendMsg SendMessage
 	err := json.Unmarshal(event.Payload, &sendMsg)
 	if err != nil {
@@ -141,5 +142,11 @@ func sendChatMessagesHandler(client *Client, event Event) error {
 		return err
 	}
 	client.egress <- storedMessage
+
+	for c, _ := range client.manager.clients {
+		if c.username == sendMsg.To {
+			c.egress <- storedMessage
+		}
+	}
 	return nil
 }
